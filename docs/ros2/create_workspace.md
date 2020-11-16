@@ -34,8 +34,10 @@ ROS2公式ドキュメントの[Using colcon to build packages](https://index.ro
 
 ROS2のコマンドやツール，`apt`コマンドでインストールしたサンプルパッケージ等，ROS2のコアとなるパッケージが存在する基礎的なワークスペースを「`underlay`」と呼びます．
 
-一方で，ユーザーが作成し，オリジナルのパッケージを配置するワークスペースを「`overlay`」と呼びます．
-`overlay`は`underlay`の上に作成されます．
+一方で，ユーザーが作成し，ユーザー独自のパッケージを配置するワークスペースを「`overlay`」と呼びます．
+`overlay`は`underlay`の上に作成されます．  
+ユーザーが作成したパッケージを使用する際は，`underlay`を読み込んだ上で`overlay`を読み込みます．
+複数の`overlay`を使用する場合は，`underlay`を読み込んだ上でそれぞれの`overlay`を読み込みます．
 
 ## 作業手順
 
@@ -103,9 +105,7 @@ roscpp_tutorials  rospy_tutorials  ros_tutorials  turtlesim
 ```
 
 このうち，`turtlesim`以外のパッケージはビルド対象から外れています．
-各パッケージのディレクトリに`COLCON_IGNORE`という名前のファイルが置かれているため，ビルドを実行しても無視されます．[^1]
-
-[^1]: 何故このような設定になっているのかは不明です．
+各パッケージのディレクトリに`COLCON_IGNORE`という名前のファイルが置かれているため，ビルドを実行しても無視されます．
 
 ### 依存関係の解決
 
@@ -186,3 +186,45 @@ source install/local_setup.bash
 ```bash
 ros2 run turtleseim turtlesim_node
 ```
+
+### Tips: 2つのoverlayセットアップスクリプト
+
+作成したワークスペースの`install/`ディレクトリを見ると，名前の異なる2つのセットアップスクリプトが存在することがわかります．
+
+- `setup.bash`
+- `local_setup.bash`
+
+この2つは何が違うのでしょうか？  
+`local_setup.bash`は，そのワークスペースの中にあるパッケージ**のみ**を環境へ追加します．
+一方で，`setup.bash`はそのワークスペースの中にあるパッケージに加えて，このセットアップスクリプトが生成された時点(つまりワークスペースをビルドした時点)での`underlay`を読み込み，両方を使えるようにします．
+
+すなわち，`overlay`の`setup.bash`を読み込むことは，「`underlay`を読み込んだ後に`overlay`の`local_setup.bash`を読み込むこと」と同じであるという事になります．
+
+ただ1つ異なるのは，`overlay`の`setup.bash`が読み込む`underlay`は，そのワークスペースがビルドされた時点での`underlay`であるという事です．
+このことを考えると，複数のワークスペースでパッケージを並列して開発する際は，`overlay`の読み込みには`local_setup.bash`を読み込むようにした方が良いかもしれません．
+
+ROS2のセットアップのベストプラクティスはまだ分かりませんが，少なくとも`install/setup.bash`を読み込むのは控えたほうが良さそうです．
+
+ちなみに筆者は`~/.bashrc`に以下のような設定を記述しています．
+
+```bash
+source /opt/ros/foxy/setup.bash
+alias ulay="source /opt/ros/foxy/setup.bash"
+alias olay="source ./install/local_setup.bash"
+```
+
+シェルを立ち上げたときに`underlay`を自動で読み込む設定の他，`underlay`を読み込むコマンドと`overlay`の`local_setup.bash`を読み込むコマンドのエイリアスを設定しています．  
+エイリアスを設定しておくことで，`ulay`と実行するだけで`underlay`の読み込みが行えるようになり，またワークスペースのルートディレクトリにいる状態で`olay`と実行すると，そのワークスペースの`local_setup.bash`を読み込めるようになります．
+
+こうすることで，ワークスペースをビルドした後の流れがスムーズになります．
+例えば以下のような例です．
+
+```bash
+ulay          # underlayはシェル立ち上げ時に読み込まれているので必要ないけど一応
+cd ~/dev_ws   # ワークスペースのルートに移動
+colcon build  # パッケージをビルド
+olay          # ビルドしたパッケージを環境に追加する
+```
+
+今後，`underlay`と`overlay`の管理方法についてのベストプラクティスが提案されるかもしれません．
+ROS2は未だ開発途上のソフトウェアなので，常に最新の情報をチェックするよう心がけましょう．

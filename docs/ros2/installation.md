@@ -122,17 +122,17 @@ source /opt/ros/dashing/setup.bash
 セットアップスクリプトは，ROS2が動作するための各種環境変数のセッティングを行ってくれます．
 このセットアップスクリプトを読み込まなければ，`ros2`コマンドを使用することはできません．
 
-ここで，公式ドキュメントでは，セットアップスクリプトの読み込みを自動化する作業を行っていますが，これは**推奨しません**．
+`/opt/ros/dashing/setup.bash`はROS2の標準パッケージやプリインストールされたパッケージ(つまり，ユーザーが追加したローカルなパッケージではないパッケージ)を読み込むためのスクリプトです．  
+このスクリプトによって読み込まれるワークスペースは`underlay`と呼ばれています．
+これに関する詳しい解説はワークスペースの作成ページで行います．
 
-詳しい話はワークスペース作成のページで説明しますが，ROS2には`underlay`と`overlay`の2つの環境レイヤーが存在します．
-`underlay`はROS2のコアとなる環境，`overlay`は個別のワークスペースの環境です．
-`/opt/ros/dashing/setup.bash`は`underlay`のセットアップスクリプトであり，これを読み込んだ状態で各ワークスペースのセットアップスクリプトを読み込むと，複雑な問題が発生する可能性があると言及されています([Creating a workspace](https://index.ros.org/doc/ros2/Tutorials/Workspace/Creating-A-Workspace/)のページ)．
+このスクリプト読み込み作業を自動化したい場合は，次のコマンドを実行します．
 
-> Before sourcing the overlay, it is very important that you open a new terminal, separate from the one where you built the workspace. Sourcing an overlay in the same terminal where you built, or likewise building where an overlay is sourced, may create complex issues.
->
-> In the new terminal, source your main ROS 2 environment as the “underlay”, so you can build the overlay “on top of” it:
+```bash
+echo "source /opt/ros/dashing/setup.bash" >> ~/.bashrc
+```
 
-`underlay`のセットアップスクリプトを自動読み込みすると，意図しないスクリプト読み込みが発生してトラブルが起こる恐れがあるため，少々面倒ですがセットアップスクリプトの読み込みは手動で行うようにしましょう．
+このコマンドを実行して以降は，新規ターミナルを立ち上げる度にROS2のセットアップスクリプトを読み込んでくれるようになります．
 
 ### 環境変数のチェック
 
