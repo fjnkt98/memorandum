@@ -208,8 +208,8 @@ ROS2のセットアップのベストプラクティスはまだ分かりませ�
 ちなみに筆者は`~/.bashrc`に以下のような設定を記述しています．
 
 ```bash
-source /opt/ros/foxy/setup.bash
-alias ulay="source /opt/ros/foxy/setup.bash"
+source /opt/ros/dasing/setup.bash
+alias ulay="source /opt/ros/dashing/setup.bash"
 alias olay="source ./install/local_setup.bash"
 ```
 
